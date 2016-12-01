@@ -5,8 +5,6 @@ import copy
 import re
 import collections
 from Logger.logger import Logger as Log
-import jieba.analyse
-import codecs
 
 
 class TextFilter(object):
@@ -20,21 +18,6 @@ class TextFilter(object):
         self._prior_prob = {}
         self.rpt = {}
         self._total_files_num = 0
-
-    def _load_config(self):
-        cfg_path = os.path.abspath('./bayes.cfg')
-        if os.path.exists(cfg_path):
-            f = open(cfg_path)
-            settings = f.readlines()
-            train_set_dir = re.match(re.compile(r'train-set-dir = (.+?) #'), settings[0]).group(1)
-            test_set_dir = re.match(re.compile(r'test-set-dir = (.+?) #'), settings[1]).group(1)
-            self._tr_set_dir = os.path.abspath(train_set_dir)
-            self._te_set_dir = os.path.abspath(test_set_dir)
-            f.close()
-        else:
-            self._tr_set_dir = os.path.abspath('./train_set')
-            self._te_set_dir = os.path.abspath('./test_set')
-        Log.log_running('Retrieved set path.')
 
     @staticmethod
     # returns like:
@@ -103,7 +86,7 @@ class TextFilter(object):
         tmp = {}
         with open(filename) as f:
             text = f.read()
-            for word in text.split():
+            for word in text.strip():
                 if word not in tmp:
                     tmp[word] = 0
                 tmp[word] += 1
@@ -160,49 +143,61 @@ class TextFilter(object):
                 Log.log_output(_count)
         return rpt
 
-    @staticmethod
-    def op_detect(set_files):
-        kws = []
-        for iter_basename in set_files:
-            for iter_filename in set_files[iter_basename]:
-                with open(iter_filename) as f:
-                    all_text = f.read()
-                    kws.append(jieba.analyse.textrank(all_text, topK=10, allowPOS=('ns', 'n')))
-        tmp = {}
-        for kw in kws:
-            for wd in kw:
-                if wd not in tmp:
-                    tmp[wd] = 0
-                tmp[wd] += 1
-        op = collections.OrderedDict(sorted((copy.deepcopy(tmp).items()), key=lambda t: -t[-1]))
-        if len(op) <= 10:
-            return ' '.join([w for w in op])
-        else:
-            s = ''
-            count = 0
-            for w in op:
-                if count == 10:
-                    break
-                count += 1
-                s += ' '
-                s += w
-            return s
-
-    def report(self):
-        with codecs.open('report.log', 'w', 'utf-8') as f:
-            ops = self.op_detect(self.get_sets_of_secondary_path_tree(self._te_set_dir))
-            f.write(ops)
-            f.write('\n')
-            for key in self.rpt:
-                f.write(key + ' belongs to ' + self.rpt[key])
-                f.write('\n')
-
     def executor(self):
-        self._load_config()
+        # self._load_config()
         self._set_attr(self.get_sets_of_secondary_path_tree(self._tr_set_dir), 'train')
         self._set_attr(self.get_sets_of_secondary_path_tree(self._te_set_dir), 'test')
         self._set_attr(self._bayes_train(self._tr_set_files), 'tr_wd_list')
         self._set_attr(self._get_prior_prob(), 'prob')
         self._set_attr(self.bayes_filter(self._prior_prob, self._tr_wd_list, self._ful_wd_list, self._te_set_files),
                        'rpt')
-        self.report()
+
+
+class TextClassification:
+
+    def __init__(self, train_set_path, test_set_path):
+        self._train_set_dir_ = train_set_path
+        self._test_set_dir_ = test_set_path
+        self._train_set_dict_ = self.get_sets_of_secondary_path_tree(train_set_path)
+        self._test_set_dict_ = self.get_sets_of_secondary_path_tree(test_set_path)
+        self._train_set_total_files_num_ = 0
+
+    @staticmethod
+    # returns like:
+    # set_files {
+    # 'sort1': ['D:\\sort1\\1.txt', 'D:\\sort1\\2.txt', 'D:\\sort1\\3.txt'],
+    # 'sort2': ['D:\\sort2\\1.txt', 'D:\\sort2\\2.txt', 'D:\\sort2\\3.txt'],
+    # }
+    def get_sets_of_secondary_path_tree(_file_dir):
+        all_file = [[], []]
+        gen = os.walk(_file_dir)
+        for root, dirs, files in gen:
+            all_file[0].append([root])
+            all_file[1].append(files)
+        set_files = {}
+        for iter_i in range(1, len(all_file[0])):
+            set_files.setdefault(
+                    os.path.basename(all_file[0][iter_i][0]),
+                    [os.path.join(all_file[0][iter_i][0], all_file[1][iter_i][iter_j]) for iter_j in
+                     range(len(all_file[1][iter_i]))]
+            )
+        return set_files
+
+    @staticmethod
+    # returns like:
+    # set_files {
+    # 'category': 'train',
+    # 'files': ['D:\\train\\1.txt', 'D:\\train\\2.txt', 'D:\\train\\3.txt']
+    # }
+    def get_sets_of_root_path_tree(_file_dir):
+        all_file = [[], []]
+        gen = os.walk(_file_dir)
+        for root, dirs, files in gen:
+            all_file[0].append([root])
+            all_file[1].append(files)
+        set_files = {
+            'category': os.path.basename(all_file[0][0][0]),
+            'files':
+                [os.path.join(all_file[0][0][0], all_file[1][0][_iter]) for _iter in range(len(all_file[1][0]))]
+        }
+        return set_files

@@ -1,4 +1,4 @@
-import Text_Filter.tf as tf
+import Text_Classification.tc as tf
 import os
 import wsthread
 import threading
