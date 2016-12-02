@@ -5,6 +5,7 @@ import copy
 import re
 import collections
 from Logger.logger import Logger as Log
+import codecs
 
 
 class TextFilter(object):
@@ -155,12 +156,17 @@ class TextFilter(object):
 
 class TextClassification:
 
-    def __init__(self, train_set_path, test_set_path):
+    def __init__(self, train_set_path, test_set_path, cache_path):
         self._train_set_dir_ = train_set_path
         self._test_set_dir_ = test_set_path
         self._train_set_dict_ = self.get_sets_of_secondary_path_tree(train_set_path)
         self._test_set_dict_ = self.get_sets_of_secondary_path_tree(test_set_path)
         self._train_set_total_files_num_ = 0
+        # like [{'category': 'Edu', 'cache_path': 'D:\corpus\Edu-seg\Edu.json'}, {...}]
+        self._cache_path_category_ = cache_path[0]
+        # like 'D:\corpus\twdlist.json'
+        self._cache_path_total_ = cache_path[1]
+
 
     @staticmethod
     # returns like:
@@ -201,3 +207,15 @@ class TextClassification:
                 [os.path.join(all_file[0][0][0], all_file[1][0][_iter]) for _iter in range(len(all_file[1][0]))]
         }
         return set_files
+
+    def get_wd_list(self, filename):
+        tmp = {}
+        with codecs.open(filename, 'r', 'utf-8') as f:
+            txt = f.read()
+            # no error for using .split() because the txt is consist of words and ' '
+            for word in txt.split():
+                if word not in tmp:
+                    tmp[word] = 0
+                tmp[word] += 1
+        # freq
+        return tmp
