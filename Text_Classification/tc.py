@@ -155,13 +155,14 @@ class TextFilter(object):
 
 
 class TextClassification:
-
     def __init__(self, train_set_path, test_set_path, cache_path):
         self._train_set_dir_ = train_set_path
         self._test_set_dir_ = test_set_path
         self._train_set_dict_ = self.get_sets_of_secondary_path_tree(train_set_path)
         self._test_set_dict_ = self.get_sets_of_secondary_path_tree(test_set_path)
         self._train_set_total_files_num_ = 0
+        for _iter_basename in self._train_set_dict_:
+            self._train_set_total_files_num_ += len(self._train_set_dict_[_iter_basename])
         # like [{'category': 'Edu', 'cache_path': 'D:\corpus\Edu-seg\Edu.json'}, {...}]
         self._cache_path_category_ = cache_path[0]
         # like 'D:\corpus\twdlist.json'
@@ -234,7 +235,7 @@ class TextClassification:
         self._wd_list_category_ = []
         if os.path.exists(self._cache_path_total_):
             self._wd_list_total_ = self.load_cache(self._cache_path_total_)
-    # like [{'category': 'Edu', 'cache_path': 'D:\corpus\Edu-seg\Edu.json'}, {...}]
+            # like [{'category': 'Edu', 'cache_path': 'D:\corpus\Edu-seg\Edu.json'}, {...}]
             for _iter_cache_file in range(len(self._cache_path_category_)):
                 self._wd_list_category_.append({
                     'category': self._cache_path_category_[_iter_cache_file]['category'],
@@ -251,11 +252,70 @@ class TextClassification:
                             wd_list_total[wd] += tmp[wd]
                         else:
                             wd_list_total[wd] = tmp[wd]
-                    words_freq = sorted((copy.deepcopy(tmp).items()), key=lambda t: -t[-1])
-                self.create_cache({
-                    'category': _iter_basename,
-                    'words': words_freq
-                }, self._train_set_dir_ + '\\' + _iter_basename + '.json')
+                    words_freq = dict(sorted((copy.deepcopy(tmp).items()), key=lambda t: -t[-1]))
+                self.create_cache(words_freq, self._train_set_dir_ + '\\' + _iter_basename + '.json')
             self._wd_list_total_ = wd_list_total
             self.create_cache(self._wd_list_total_, os.path.abspath(self._train_set_dir_ + '\\..') +
                               '\\wdlist-total.json')
+
+    def _get_prior_possibility_(self):
+        prior_possibility = [{
+                                 'category': _iter_basename,
+                                 'prior_possibility': len(self._train_set_dict_[_iter_basename]) * 1.0 /
+                                                      self._train_set_total_files_num_
+                             } for _iter_basename in self._train_set_dict_]
+        return prior_possibility
+
+    def text_classification(self):
+        prior_pos = self._get_prior_possibility_()
+
+        def p_possibility(p_pos_list):
+            p_pos = 1
+            _count = 0
+            for _p_ in p_pos_list:
+                while _p_ < 1:
+                    _p_ *= 10
+                    _count += 1
+                p_pos *= _p_
+            return p_pos, _count
+
+        def classification(p_possibility_list, category):
+            pos = 0
+            __p = p_possibility_list[0]['p_possibility'][0]
+            _log = p_possibility_list[0]['p_possibility'][1]
+            for _iter_ in range(1, len(p_possibility_list)):
+                if p_possibility_list[_iter_]['p_possibility'][1] < _log:
+                    __p = p_possibility_list[_iter_]['p_possibility'][0]
+                    _log = p_possibility_list[_iter_]['p_possibility'][1]
+                    pos = _iter_
+                elif p_possibility_list[_iter_]['p_possibility'][1] == _log:
+                    if p_possibility_list[_iter_]['p_possibility'][0] < __p:
+                        __p = p_possibility_list[_iter_]['p_possibility'][0]
+                        _log = p_possibility_list[_iter_]['p_possibility'][1]
+                        pos = _iter_
+            return p_possibility_list[pos]['p_possibility'][0], \
+                   category == p_possibility_list[pos]['p_possibility'][0]
+
+        for _iter_basename in self._test_set_dict_:
+            test_num = len(self._test_set_dict_[_iter_basename])
+            if_right = 0
+            for _iter_file in self._test_set_dict_[_iter_basename]:
+                wd_list = self.get_wd_list(_iter_file)
+                category_pos = []
+                for _iter_category in range(len(self._wd_list_category_)):
+                    wd_account = len(self._wd_list_category_[_iter_category]['words'])
+                    _p_category = []
+                    for wd in wd_list.keys():
+                        if wd in self._wd_list_category_[_iter_category]['words']:
+                            nij = self._wd_list_category_[_iter_category]['words'][wd]
+                            for _iter_ in range(wd_list[wd]):
+                                _p = prior_pos[_iter_category]['prior_possibility'] * (nij + 1) * 1.0 / \
+                                    (wd_account + self._train_set_total_files_num_)
+                                _p_category.append(_p)
+                    category_pos.append({
+                        'category': self._wd_list_category_[_iter_category]['category'],
+                        'p_possibility': p_possibility(_p_category)
+                    })
+                if classification(category_pos, _iter_basename)[1]:
+                    if_right += 1
+            print if_right * 1.0 / test_num
