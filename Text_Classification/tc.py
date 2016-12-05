@@ -2,10 +2,10 @@
 # -*- coding:utf-8 -*-
 import os
 import copy
-import re
 import collections
 from Logger.logger import Logger as Log
 import codecs
+import json
 
 
 class TextFilter(object):
@@ -167,7 +167,6 @@ class TextClassification:
         # like 'D:\corpus\twdlist.json'
         self._cache_path_total_ = cache_path[1]
 
-
     @staticmethod
     # returns like:
     # set_files {
@@ -208,7 +207,8 @@ class TextClassification:
         }
         return set_files
 
-    def get_wd_list(self, filename):
+    @staticmethod
+    def get_wd_list(filename):
         tmp = {}
         with codecs.open(filename, 'r', 'utf-8') as f:
             txt = f.read()
@@ -219,3 +219,43 @@ class TextClassification:
                 tmp[word] += 1
         # freq
         return tmp
+
+    @staticmethod
+    def load_cache(cache_path):
+        with open(cache_path, 'r') as cache:
+            return json.load(cache)
+
+    @staticmethod
+    def create_cache(cache, cache_path):
+        with open(cache_path, 'w') as cache_file:
+            json.dump(cache, cache_file)
+
+    def _bayes_train_(self):
+        self._wd_list_category_ = []
+        if os.path.exists(self._cache_path_total_):
+            self._wd_list_total_ = self.load_cache(self._cache_path_total_)
+    # like [{'category': 'Edu', 'cache_path': 'D:\corpus\Edu-seg\Edu.json'}, {...}]
+            for _iter_cache_file in range(len(self._cache_path_category_)):
+                self._wd_list_category_.append({
+                    'category': self._cache_path_category_[_iter_cache_file]['category'],
+                    'words': self.load_cache(self._cache_path_category_[_iter_cache_file]['cache_path'])
+                })
+        else:
+            wd_list_total = {}
+            for _iter_basename in self._train_set_dict_:
+                words_freq = {}
+                for _iter_filename in self._train_set_dict_[_iter_basename]:
+                    tmp = TextClassification.get_wd_list(_iter_filename)
+                    for wd in tmp:
+                        if wd in wd_list_total:
+                            wd_list_total[wd] += tmp[wd]
+                        else:
+                            wd_list_total[wd] = tmp[wd]
+                    words_freq = sorted((copy.deepcopy(tmp).items()), key=lambda t: -t[-1])
+                self.create_cache({
+                    'category': _iter_basename,
+                    'words': words_freq
+                }, self._train_set_dir_ + '\\' + _iter_basename + '.json')
+            self._wd_list_total_ = wd_list_total
+            self.create_cache(self._wd_list_total_, os.path.abspath(self._train_set_dir_ + '\\..') +
+                              '\\wdlist-total.json')
