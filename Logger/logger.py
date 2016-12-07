@@ -5,10 +5,10 @@ timestamp = now.strftime('%m-%d %H:%M:%S')
 
 class Logout(object):
     TAG = {
-        'OK_BLUE': '\033[94m' + '[-] ' + timestamp,
-        'OK_GREEN': '\033[92m' + '[-] ' + timestamp,
-        'EMPHASIS': '\033[93m' + '[*] ' + timestamp,
-        'CAUTION': '\033[91m' + '[#] ' + timestamp,
+        'OK_BLUE': '\033[94m' + '[-]' + timestamp,
+        'OK_GREEN': '\033[92m' + '[-]' + timestamp,
+        'EMPHASIS': '\033[93m' + '[*]' + timestamp,
+        'CAUTION': '\033[91m' + '[#]' + timestamp,
         'ENDC': '\033[0m'
     }
 
