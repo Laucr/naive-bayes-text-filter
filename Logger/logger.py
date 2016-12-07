@@ -2,8 +2,8 @@ class Logout(object):
     TAG = {
         'OK_BLUE': '\033[94m' + '[-] ',
         'OK_GREEN': '\033[92m' + '[-] ',
-        'WARNING': '\033[93m' + '[*] ',
-        'ERROR': '\033[91m' + '[#] ',
+        'EMPHASIS': '\033[93m' + '[*] ',
+        'CAUTION': '\033[91m' + '[#] ',
         'ENDC': '\033[0m'
     }
 
@@ -22,7 +22,7 @@ class Logout(object):
 class Logger(object):
     @staticmethod
     @Logout('OK_BLUE')
-    def log_running(msg):
+    def log_blue_running(msg):
         return msg
 
     @staticmethod
@@ -31,11 +31,16 @@ class Logger(object):
         return [m for m in msg]
 
     @staticmethod
-    @Logout('ERROR')
-    def log_error(msg):
+    @Logout('OK_GREEN')
+    def log_green_running(msg):
         return msg
 
     @staticmethod
-    @Logout('WARNING')
-    def log_warning(msg):
+    @Logout('CAUTION')
+    def log_caution(msg):
+        return msg
+
+    @staticmethod
+    @Logout('EMPHASIS')
+    def log_emphasis(msg):
         return msg

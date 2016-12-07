@@ -1,4 +1,4 @@
-import Text_Classification.tc as tf
+import Text_Classification.tc as tc
 import os
 import wsthread
 import threading
@@ -28,7 +28,7 @@ category_path = [
     os.path.abspath('../../corpus/test/Women'),
 ]
 
-threads_set_dict = [tf.TextFilter.get_sets_of_root_path_tree(category_path[_iter])
+threads_set_dict = [tc.TextClassification.get_sets_of_root_path_tree(category_path[_iter])
                     for _iter in range(len(category_path))]
 
 thread_lock = threading.Lock()

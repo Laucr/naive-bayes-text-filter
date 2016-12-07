@@ -12,10 +12,10 @@ class WsThread(threading.Thread):
         self.thread_lock = thread_lock
 
     def run(self):
-        self.thread_lock.acquire()
+        # self.thread_lock.acquire()
         ws = WS(self.set_dict)
-        Log.log_running('Thread for ' + self.getName() + ' is running.')
+        Log.log_green_running('Thread for ' + self.getName() + ' is running.')
         ws.wd_seg()
-        Log.log_running('Thread for ' + self.getName() + ' finished.')
-        self.thread_lock.release()
+        Log.log_green_running('Thread for ' + self.getName() + ' finished.')
+        # self.thread_lock.release()
 
