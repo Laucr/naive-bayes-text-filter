@@ -1,9 +1,14 @@
+import datetime
+now = datetime.datetime.now()
+timestamp = now.strftime('%m-%d %H:%M:%S')
+
+
 class Logout(object):
     TAG = {
-        'OK_BLUE': '\033[94m' + '[-] ',
-        'OK_GREEN': '\033[92m' + '[-] ',
-        'EMPHASIS': '\033[93m' + '[*] ',
-        'CAUTION': '\033[91m' + '[#] ',
+        'OK_BLUE': '\033[94m' + '[-] ' + timestamp,
+        'OK_GREEN': '\033[92m' + '[-] ' + timestamp,
+        'EMPHASIS': '\033[93m' + '[*] ' + timestamp,
+        'CAUTION': '\033[91m' + '[#] ' + timestamp,
         'ENDC': '\033[0m'
     }
 
