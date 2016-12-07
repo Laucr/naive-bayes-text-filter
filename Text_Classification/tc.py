@@ -1,4 +1,4 @@
-# text filtering module based on naive bayes
+# text classification module based on naive bayes
 # -*- coding:utf-8 -*-
 import os
 import copy
