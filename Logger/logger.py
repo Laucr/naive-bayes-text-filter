@@ -1,14 +1,12 @@
 import datetime
-now = datetime.datetime.now()
-timestamp = now.strftime('%m-%d %H:%M:%S')
 
 
 class Logout(object):
     TAG = {
-        'OK_BLUE': '\033[94m' + '[-] ' + timestamp,
-        'OK_GREEN': '\033[92m' + '[-] ' + timestamp,
-        'EMPHASIS': '\033[93m' + '[*] ' + timestamp,
-        'CAUTION': '\033[91m' + '[#] ' + timestamp,
+        'OK_BLUE': '\033[94m' + '[-]',
+        'OK_GREEN': '\033[92m' + '[-]',
+        'EMPHASIS': '\033[93m' + '[*]',
+        'CAUTION': '\033[91m' + '[#]',
         'ENDC': '\033[0m'
     }
 
@@ -28,24 +26,34 @@ class Logger(object):
     @staticmethod
     @Logout('OK_BLUE')
     def log_blue_running(msg):
-        return msg
+        now = datetime.datetime.now()
+        timestamp = now.strftime('%m-%d %H:%M:%S')
+        return timestamp + ' ' + msg
 
     @staticmethod
     @Logout('OK_GREEN')
     def log_output(msg):
-        return [m for m in msg]
+        now = datetime.datetime.now()
+        timestamp = now.strftime('%m-%d %H:%M:%S')
+        return timestamp+ ' ', [m for m in msg]
 
     @staticmethod
     @Logout('OK_GREEN')
     def log_green_running(msg):
-        return msg
+        now = datetime.datetime.now()
+        timestamp = now.strftime('%m-%d %H:%M:%S')
+        return timestamp + ' ' + msg
 
     @staticmethod
     @Logout('CAUTION')
     def log_caution(msg):
-        return msg
+        now = datetime.datetime.now()
+        timestamp = now.strftime('%m-%d %H:%M:%S')
+        return timestamp + ' ' + msg
 
     @staticmethod
     @Logout('EMPHASIS')
     def log_emphasis(msg):
-        return msg
+        now = datetime.datetime.now()
+        timestamp = now.strftime('%m-%d %H:%M:%S')
+        return timestamp + ' ' + msg

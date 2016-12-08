@@ -13,7 +13,6 @@ cache_path = [
         {'category': 'Military', 'cache_path': 'D:\\Projs\\corpus-seg\\train\\Military.json'},
         {'category': 'Technology', 'cache_path': 'D:\\Projs\\corpus-seg\\train\\Technology.json'},
         {'category': 'Tourism', 'cache_path': 'D:\\Projs\\corpus-seg\\train\\Tourism.json'},
-        {'category': 'Wenshi', 'cache_path': 'D:\\Projs\\corpus-seg\\train\\Wenshi.json'},
         {'category': 'Women', 'cache_path': 'D:\\Projs\\corpus-seg\\train\\Women.json'},
     ],
     'D:\\Projs\\corpus-seg\\wdlist-total.json'

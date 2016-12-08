@@ -114,8 +114,8 @@ class TextClassification:
                             wd_list_total[wd] = tmp[wd]
                     words_freq = OrderedDict((sorted((copy.deepcopy(tmp).items()), key=lambda t: -t[-1]))).items()
 
-                    if len(words_freq) > 25:
-                        characteristic_wd_file = dict((x, y) for x, y in words_freq[:25])
+                    if len(words_freq) > 10:
+                        characteristic_wd_file = dict((x, y) for x, y in words_freq[:10])
                     else:
                         characteristic_wd_file = dict((x, y) for x, y in words_freq)
 
@@ -158,6 +158,7 @@ class TextClassification:
             # self.thread_lock.release()
 
     def text_classification_polynomial(self, test_category):
+        logfile = open('tc_log.log', 'a')
         prior_pos = self._get_prior_possibility_()
 
         def p_possibility(p_pos_list):
@@ -196,9 +197,16 @@ class TextClassification:
         Log.log_blue_running('Category: ' + test_category +
                              ' total ' + str(test_num) + ', correct: ' + str(if_right) +
                              ' Accuracy: ' + str((if_right * 1.0 / test_num) * 100) + '%')
+        logfile.write('Category: ' + test_category +
+                      ' total ' + str(test_num) + ', correct: ' + str(if_right) +
+                      ' Accuracy: ' + str((if_right * 1.0 / test_num) * 100) + '%' + '\n')
+        logfile.close()
 
     def tc_thd_starter(self):
-        thread_lock = threading.Lock()
-        threads = [self.TcThread(_iter_basename_, thread_lock, self, _iter_basename_)
-                   for _iter_basename_ in self._test_set_dict_]
-        [threads[_iter_].start() for _iter_ in range(len(threads))]
+        # thread_lock = threading.Lock()
+        # threads = [self.TcThread(_iter_basename_, thread_lock, self, _iter_basename_)
+        #            for _iter_basename_ in self._test_set_dict_]
+        # [threads[_iter_].start() for _iter_ in range(len(threads))]
+
+        for _iter_basename_ in self._test_set_dict_:
+            self.text_classification_polynomial(_iter_basename_)
